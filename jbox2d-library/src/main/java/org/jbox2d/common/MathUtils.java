@@ -1,15 +1,15 @@
 /*******************************************************************************
  * Copyright (c) 2013, Daniel Murphy
  * All rights reserved.
- * 
+ * <p/>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 	* Redistributions of source code must retain the above copyright notice,
- * 	  this list of conditions and the following disclaimer.
- * 	* Redistributions in binary form must reproduce the above copyright notice,
- * 	  this list of conditions and the following disclaimer in the documentation
- * 	  and/or other materials provided with the distribution.
- * 
+ * * Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * <p/>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -51,278 +51,214 @@ import java.util.Random;
 /**
  * A few math methods that don't fit very well anywhere else.
  */
+
 public class MathUtils extends PlatformMathUtils {
-  public static final float PI = (float) Math.PI;
-  public static final float TWOPI = (float) (Math.PI * 2);
-  public static final float INV_PI = 1f / PI;
-  public static final float HALF_PI = PI / 2;
-  public static final float QUARTER_PI = PI / 4;
-  public static final float THREE_HALVES_PI = TWOPI - HALF_PI;
+    public static final float PI = 3.1415927F;
+    public static final float TWOPI = 6.2831855F;
+    public static final float INV_PI = 0.31830987F;
+    public static final float HALF_PI = 1.5707964F;
+    public static final float QUARTER_PI = 0.7853982F;
+    public static final float THREE_HALVES_PI = 4.712389F;
+    public static final float DEG2RAD = 0.017453292F;
+    public static final float RAD2DEG = 57.295776F;
+    public static final float[] sinLUT;
 
-  /**
-   * Degrees to radians conversion factor
-   */
-  public static final float DEG2RAD = PI / 180;
-
-  /**
-   * Radians to degrees conversion factor
-   */
-  public static final float RAD2DEG = 180 / PI;
-
-  public static final float[] sinLUT = new float[Settings.SINCOS_LUT_LENGTH];
-
-  static {
-    for (int i = 0; i < Settings.SINCOS_LUT_LENGTH; i++) {
-      sinLUT[i] = (float) Math.sin(i * Settings.SINCOS_LUT_PRECISION);
-    }
-  }
-
-  public static final float sin(float x) {
-    if (Settings.SINCOS_LUT_ENABLED) {
-      return sinLUT(x);
-    } else {
-      return (float) StrictMath.sin(x);
-    }
-  }
-
-  public static final float sinLUT(float x) {
-    x %= TWOPI;
-
-    if (x < 0) {
-      x += TWOPI;
+    public MathUtils() {
     }
 
-    if (Settings.SINCOS_LUT_LERP) {
-
-      x /= Settings.SINCOS_LUT_PRECISION;
-
-      final int index = (int) x;
-
-      if (index != 0) {
-        x %= index;
-      }
-
-      // the next index is 0
-      if (index == Settings.SINCOS_LUT_LENGTH - 1) {
-        return ((1 - x) * sinLUT[index] + x * sinLUT[0]);
-      } else {
-        return ((1 - x) * sinLUT[index] + x * sinLUT[index + 1]);
-      }
-
-    } else {
-      return sinLUT[MathUtils.round(x / Settings.SINCOS_LUT_PRECISION) % Settings.SINCOS_LUT_LENGTH];
+    public static final float sin(float x) {
+        return Settings.SINCOS_LUT_ENABLED ? sinLUT(x) : (float) StrictMath.sin((double) x);
     }
-  }
 
-  public static final float cos(float x) {
-    if (Settings.SINCOS_LUT_ENABLED) {
-      return sinLUT(HALF_PI - x);
-    } else {
-      return (float) StrictMath.cos(x);
+    public static final float sinLUT(float x) {
+        x %= 6.2831855F;
+        if (x < 0.0F) {
+            x += 6.2831855F;
+        }
+
+        if (Settings.SINCOS_LUT_LERP) {
+            x /= 1.1E-4F;
+            int index = (int) x;
+            if (index != 0) {
+                x %= (float) index;
+            }
+
+            return index == Settings.SINCOS_LUT_LENGTH - 1 ? (1.0F - x) * sinLUT[index] + x * sinLUT[0] : (1.0F - x) * sinLUT[index] + x * sinLUT[index + 1];
+        } else {
+            return sinLUT[round(x / 1.1E-4F) % Settings.SINCOS_LUT_LENGTH];
+        }
     }
-  }
 
-  public static final float abs(final float x) {
-    if (Settings.FAST_ABS) {
-      return x > 0 ? x : -x;
-    } else {
-      return StrictMath.abs(x);
+    public static final float cos(float x) {
+        return Settings.SINCOS_LUT_ENABLED ? sinLUT(1.5707964F - x) : (float) StrictMath.cos((double) x);
     }
-  }
 
-  public static final float fastAbs(final float x) {
-    return x > 0 ? x : -x;
-  }
-
-  public static final int abs(int x) {
-    int y = x >> 31;
-    return (x ^ y) - y;
-  }
-
-  public static final int floor(final float x) {
-    if (Settings.FAST_FLOOR) {
-      return fastFloor(x);
-    } else {
-      return (int) StrictMath.floor(x);
+    public static final float abs(float x) {
+        return Settings.FAST_ABS ? (x > 0.0F ? x : -x) : Math.abs(x);
     }
-  }
 
-  public static final int fastFloor(final float x) {
-    int y = (int) x;
-    if (x < y) {
-      return y - 1;
+    public static final int abs(int x) {
+        int y = x >> 31;
+        return (x ^ y) - y;
     }
-    return y;
-  }
 
-  public static final int ceil(final float x) {
-    if (Settings.FAST_CEIL) {
-      return fastCeil(x);
-    } else {
-      return (int) StrictMath.ceil(x);
+    public static final int floor(float x) {
+        if (Settings.FAST_FLOOR) {
+            int y = (int) x;
+            return x < 0.0F && x != (float) y ? y - 1 : y;
+        } else {
+            return (int) Math.floor((double) x);
+        }
     }
-  }
 
-  public static final int fastCeil(final float x) {
-    int y = (int) x;
-    if (x > y) {
-      return y + 1;
+    public static final int ceil(float x) {
+        if (Settings.FAST_CEIL) {
+            int y = (int) x;
+            return x > 0.0F && x != (float) y ? y + 1 : y;
+        } else {
+            return (int) Math.ceil((double) x);
+        }
     }
-    return y;
-  }
 
-  public static final int round(final float x) {
-    if (Settings.FAST_ROUND) {
-      return floor(x + .5f);
-    } else {
-      return StrictMath.round(x);
+    public static final int round(float x) {
+        return Settings.FAST_ROUND ? floor(x + 0.5F) : StrictMath.round(x);
     }
-  }
 
-  /**
-   * Rounds up the value to the nearest higher power^2 value.
-   * 
-   * @param x
-   * @return power^2 value
-   */
-  public static final int ceilPowerOf2(int x) {
-    int pow2 = 1;
-    while (pow2 < x) {
-      pow2 <<= 1;
+    public static final int ceilPowerOf2(int x) {
+        int pow2;
+        for (pow2 = 1; pow2 < x; pow2 <<= 1) {
+            ;
+        }
+
+        return pow2;
     }
-    return pow2;
-  }
 
-  public final static float max(final float a, final float b) {
-    return a > b ? a : b;
-  }
-
-  public final static int max(final int a, final int b) {
-    return a > b ? a : b;
-  }
-
-  public final static float min(final float a, final float b) {
-    return a < b ? a : b;
-  }
-
-  public final static int min(final int a, final int b) {
-    return a < b ? a : b;
-  }
-
-  public final static float map(final float val, final float fromMin, final float fromMax,
-      final float toMin, final float toMax) {
-    final float mult = (val - fromMin) / (fromMax - fromMin);
-    final float res = toMin + mult * (toMax - toMin);
-    return res;
-  }
-
-  /** Returns the closest value to 'a' that is in between 'low' and 'high' */
-  public final static float clamp(final float a, final float low, final float high) {
-    return max(low, min(a, high));
-  }
-
-  public final static Vec2 clamp(final Vec2 a, final Vec2 low, final Vec2 high) {
-    final Vec2 min = new Vec2();
-    min.x = a.x < high.x ? a.x : high.x;
-    min.y = a.y < high.y ? a.y : high.y;
-    min.x = low.x > min.x ? low.x : min.x;
-    min.y = low.y > min.y ? low.y : min.y;
-    return min;
-  }
-
-  public final static void clampToOut(final Vec2 a, final Vec2 low, final Vec2 high, final Vec2 dest) {
-    dest.x = a.x < high.x ? a.x : high.x;
-    dest.y = a.y < high.y ? a.y : high.y;
-    dest.x = low.x > dest.x ? low.x : dest.x;
-    dest.y = low.y > dest.y ? low.y : dest.y;
-  }
-
-  /**
-   * Next Largest Power of 2: Given a binary integer value x, the next largest power of 2 can be
-   * computed by a SWAR algorithm that recursively "folds" the upper bits into the lower bits. This
-   * process yields a bit vector with the same most significant 1 as x, but all 1's below it. Adding
-   * 1 to that value yields the next largest power of 2.
-   */
-  public final static int nextPowerOfTwo(int x) {
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    return x + 1;
-  }
-
-  public final static boolean isPowerOfTwo(final int x) {
-    return x > 0 && (x & x - 1) == 0;
-  }
-
-  public static final float pow(float a, float b) {
-    if (Settings.FAST_POW) {
-      return fastPow(a, b);
-    } else {
-      return (float) StrictMath.pow(a, b);
+    public static final float max(float a, float b) {
+        return a > b ? a : b;
     }
-  }
 
-  public static final float atan2(final float y, final float x) {
-    if (Settings.FAST_ATAN2) {
-      return fastAtan2(y, x);
-    } else {
-      return (float) StrictMath.atan2(y, x);
+    public static final int max(int a, int b) {
+        return a > b ? a : b;
     }
-  }
 
-  public static final float fastAtan2(float y, float x) {
-    if (x == 0.0f) {
-      if (y > 0.0f) return HALF_PI;
-      if (y == 0.0f) return 0.0f;
-      return -HALF_PI;
+    public static final float min(float a, float b) {
+        return a < b ? a : b;
     }
-    float atan;
-    final float z = y / x;
-    if (abs(z) < 1.0f) {
-      atan = z / (1.0f + 0.28f * z * z);
-      if (x < 0.0f) {
-        if (y < 0.0f) return atan - PI;
-        return atan + PI;
-      }
-    } else {
-      atan = HALF_PI - z / (z * z + 0.28f);
-      if (y < 0.0f) return atan - PI;
+
+    public static final int min(int a, int b) {
+        return a < b ? a : b;
     }
-    return atan;
-  }
 
-  public static final float reduceAngle(float theta) {
-    theta %= TWOPI;
-    if (abs(theta) > PI) {
-      theta = theta - TWOPI;
+    public static final float map(float val, float fromMin, float fromMax, float toMin, float toMax) {
+        float mult = (val - fromMin) / (fromMax - fromMin);
+        float res = toMin + mult * (toMax - toMin);
+        return res;
     }
-    if (abs(theta) > HALF_PI) {
-      theta = PI - theta;
+
+    public static final float clamp(float a, float low, float high) {
+        return max(low, min(a, high));
     }
-    return theta;
-  }
 
-  public static final float randomFloat(float argLow, float argHigh) {
-    return (float) Math.random() * (argHigh - argLow) + argLow;
-  }
+    public static final Vec2 clamp(Vec2 a, Vec2 low, Vec2 high) {
+        Vec2 min = new Vec2();
+        min.x = a.x < high.x ? a.x : high.x;
+        min.y = a.y < high.y ? a.y : high.y;
+        min.x = low.x > min.x ? low.x : min.x;
+        min.y = low.y > min.y ? low.y : min.y;
+        return min;
+    }
 
-  public static final float randomFloat(Random r, float argLow, float argHigh) {
-    return r.nextFloat() * (argHigh - argLow) + argLow;
-  }
+    public static final void clampToOut(Vec2 a, Vec2 low, Vec2 high, Vec2 dest) {
+        dest.x = a.x < high.x ? a.x : high.x;
+        dest.y = a.y < high.y ? a.y : high.y;
+        dest.x = low.x > dest.x ? low.x : dest.x;
+        dest.y = low.y > dest.y ? low.y : dest.y;
+    }
 
-  public static final float sqrt(float x) {
-    return (float) StrictMath.sqrt(x);
-  }
+    public static final int nextPowerOfTwo(int x) {
+        x |= x >> 1;
+        x |= x >> 2;
+        x |= x >> 4;
+        x |= x >> 8;
+        x |= x >> 16;
+        return x + 1;
+    }
 
-  public final static float distanceSquared(Vec2 v1, Vec2 v2) {
-    float dx = (v1.x - v2.x);
-    float dy = (v1.y - v2.y);
-    return dx * dx + dy * dy;
-  }
+    public static final boolean isPowerOfTwo(int x) {
+        return x > 0 && (x & x - 1) == 0;
+    }
 
-  public final static float distance(Vec2 v1, Vec2 v2) {
-    return sqrt(distanceSquared(v1, v2));
-  }
+    public static final float atan2(float y, float x) {
+        return Settings.FAST_ATAN2 ? fastAtan2(y, x) : (float) StrictMath.atan2((double) y, (double) x);
+    }
+
+    public static final float fastAtan2(float y, float x) {
+        if (x == 0.0F) {
+            return y > 0.0F ? 1.5707964F : (y == 0.0F ? 0.0F : -1.5707964F);
+        } else {
+            float z = y / x;
+            float atan;
+            if (abs(z) < 1.0F) {
+                atan = z / (1.0F + 0.28F * z * z);
+                if (x < 0.0F) {
+                    if (y < 0.0F) {
+                        return atan - 3.1415927F;
+                    }
+
+                    return atan + 3.1415927F;
+                }
+            } else {
+                atan = 1.5707964F - z / (z * z + 0.28F);
+                if (y < 0.0F) {
+                    return atan - 3.1415927F;
+                }
+            }
+
+            return atan;
+        }
+    }
+
+    public static final float reduceAngle(float theta) {
+        theta %= 6.2831855F;
+        if (abs(theta) > 3.1415927F) {
+            theta -= 6.2831855F;
+        }
+
+        if (abs(theta) > 1.5707964F) {
+            theta = 3.1415927F - theta;
+        }
+
+        return theta;
+    }
+
+    public static final float randomFloat(float argLow, float argHigh) {
+        return (float) Math.random() * (argHigh - argLow) + argLow;
+    }
+
+    public static final float randomFloat(Random r, float argLow, float argHigh) {
+        return r.nextFloat() * (argHigh - argLow) + argLow;
+    }
+
+    public static final float sqrt(float x) {
+        return (float) StrictMath.sqrt((double) x);
+    }
+
+    public static final float distanceSquared(Vec2 v1, Vec2 v2) {
+        float dx = v1.x - v2.x;
+        float dy = v1.y - v2.y;
+        return dx * dx + dy * dy;
+    }
+
+    public static final float distance(Vec2 v1, Vec2 v2) {
+        return sqrt(distanceSquared(v1, v2));
+    }
+
+    static {
+        sinLUT = new float[Settings.SINCOS_LUT_LENGTH];
+
+        for (int i = 0; i < Settings.SINCOS_LUT_LENGTH; ++i) {
+            sinLUT[i] = (float) Math.sin((double) ((float) i * 1.1E-4F));
+        }
+
+    }
 }

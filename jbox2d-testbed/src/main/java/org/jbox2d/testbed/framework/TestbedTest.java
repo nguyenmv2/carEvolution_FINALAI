@@ -400,7 +400,8 @@ public abstract class TestbedTest
 
   public void step(TestbedSettings settings) {
     float hz = settings.getSetting(TestbedSettings.Hz).value;
-    float timeStep = hz > 0f ? 1f / hz : 0;
+    float timeStep = (float) (1.0/ 60.0);
+
     if (settings.singleStep && !settings.pause) {
       settings.pause = true;
     }
@@ -446,6 +447,8 @@ public abstract class TestbedTest
 
     m_world.step(timeStep, settings.getSetting(TestbedSettings.VelocityIterations).value,
         settings.getSetting(TestbedSettings.PositionIterations).value);
+//    m_world.step(timeStep, settings.getSetting(TestbedSettings.VelocityIterations).value,
+//        settings.getSetting(TestbedSettings.PositionIterations).value);
 
     m_world.drawDebugData();
 
