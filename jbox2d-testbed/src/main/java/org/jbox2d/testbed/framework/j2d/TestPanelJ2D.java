@@ -102,7 +102,7 @@ public class TestPanelJ2D extends JPanel implements TestbedPanel {
       dbg = (Graphics2D) dbImage.getGraphics();
       dbg.setFont(new Font("Courier New", Font.PLAIN, 12));
     }
-    dbg.setColor(Color.white);
+    dbg.setColor(Color.black);
     dbg.fillRect(0, 0, panelWidth, panelHeight);
     return true;
   }

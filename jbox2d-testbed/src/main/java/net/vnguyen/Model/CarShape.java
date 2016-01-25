@@ -40,6 +40,14 @@ public class CarShape
     public int[] wheelVertex;
     public Vec2[] vertexList;
 
+    public World getWorld() {
+        return world;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
+    }
+
     World world;
 
 
@@ -52,6 +60,16 @@ public class CarShape
         generate();
     }
 
+    public CarShape(Vec2[] childVertexList, float childChassisDensity, int childWheelCount, int[] childWheelVertex, float[] childWheelRadius, float[] childWheelDensity) {
+        vertexList = childVertexList;
+        wheelVertex = childWheelVertex;
+        wheelRadius = childWheelRadius;
+        wheelDensity = childWheelDensity;
+        wheelCount = childWheelCount;
+        chassisDensity = childChassisDensity;
+
+    }
+
 
     public void generate(){
         /*
@@ -60,7 +78,6 @@ public class CarShape
         for (int i = 0; i < wheelCount; i++) {
             wheelRadius[i] = (float) (Math.random()*WheelMaxRadius+WheelMinRadius);
             wheelDensity[i] = (float) Math.random()*WheelMaxDensity + WheelMinDensity;
-            System.out.println("Wheel Density : "+wheelDensity[i]);
         }
         chassisDensity = (float)Math.random()*ChassisMaxDensity + ChassisMinDensity;
 
@@ -85,7 +102,6 @@ public class CarShape
             int wheelIdx = (int) Math.floor(Math.random() * randomVertex.size());
             wheelVertex[i] = randomVertex.get(wheelIdx);
             randomVertex.remove(wheelIdx);
-            System.out.println("Picked :" + wheelVertex[i]);
         }
     }
 

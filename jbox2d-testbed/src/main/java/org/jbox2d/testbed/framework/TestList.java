@@ -34,7 +34,7 @@ public class TestList {
     // particles
 
     model.addTest(new CarEvolution());
-    model.addTest(new Car());
+
     
 
   }
